@@ -196,3 +196,4 @@ $RECYCLE.BIN/
 
 # remove postgres persistence directory
 postgres_data/
+db/

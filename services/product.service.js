@@ -1,37 +1,39 @@
 const faker = require('faker');
 const boom = require('@hapi/boom');
+const { pool } = require('./../libs/postgres.pool')
+const { models } = require('./../libs/sequelize')
+const { Op } = require('sequelize')
 
 class ProductsService {
 
-  constructor(){
-    this.products = [];
-    this.generate();
-  }
+  constructor() { }
 
-  generate() {
-    const limit = 100;
-    for (let index = 0; index < limit; index++) {
-      this.products.push({
-        id: faker.datatype.uuid(),
-        name: faker.commerce.productName(),
-        price: parseInt(faker.commerce.price(), 10),
-        image: faker.image.imageUrl(),
-        isBlock: faker.datatype.boolean(),
-      });
+  async find({ limit, offset, price, price_min, price_max }) {
+    const options = {
+      include: ['category'],
+      limit,
+      offset,
+      where: {},
     }
-  }
 
-  async create(data) {
-    const newProduct = {
-      id: faker.datatype.uuid(),
-      ...data
+    if (price) options.where.price = { [Op.eq]: price }
+
+    if (price_min) {
+      options.where.price = {
+        ...options.where.price,
+        [Op.gte]: price_min,
+      }
     }
-    this.products.push(newProduct);
-    return newProduct;
-  }
 
-  find() {
-    return this.products;
+    if (price_max) {
+      options.where.price = {
+        ...options.where.price,
+        [Op.lte]: price_max,
+      }
+    }
+
+    const products = await models.Product.findAll(options)
+    return products;
   }
 
   async findOne(id) {
@@ -43,6 +45,11 @@ class ProductsService {
       throw boom.conflict('product is block');
     }
     return product;
+  }
+
+  async create(data) {
+    const newProduct = await models.Product.create(data)
+    return newProduct;
   }
 
   async update(id, changes) {

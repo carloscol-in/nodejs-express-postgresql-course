@@ -4,10 +4,38 @@ services:
   postgres:
     image: postgres:13
     environment:
-      - POSTGRES_DB=store
-      - POSTGRES_USER=carlos
-      - POSTGRES_PASSWORD=admin123
+      - POSTGRES_DB=${DBNAME}
+      - POSTGRES_USER=${DBUSER}
+      - POSTGRES_PASSWORD=${DBPASSWORD}
     ports:
       - 5432:5432
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@email.com
+      - PGADMIN_DEFAULT_PASSWORD=${DBPASSWORD}
+    ports:
+      - 5050:80
+
+  mysql:
+    image: mysql:5
+    environment:
+      - MYSQL_DATABASE=${DBNAME}
+      - MYSQL_USERNAME=${DBUSER}
+      - MYSQL_ROOT_PASSWORD=${DBPASSWORD}
+      - MYSQL_PORT=3306
+    ports:
+      - 3306:3306
+    volumes:
+      - ./db/mysql:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DBPASSWORD}
+      - PMA_HOST=mysql
+    ports:
+      - 8080:80

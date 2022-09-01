@@ -1,5 +1,7 @@
-function logErrors (err, req, res, next) {
-  console.error(err);
+const { ValidationError, ForeignKeyConstraintError } = require('sequelize')
+
+function logErrors(err, req, res, next) {
+  // console.error(err);
   next(err);
 }
 
@@ -14,9 +16,23 @@ function boomErrorHandler(err, req, res, next) {
   if (err.isBoom) {
     const { output } = err;
     res.status(output.statusCode).json(output.payload);
+    return
   }
   next(err);
 }
 
+function ormErrorHandler(err, req, res, next) {
+  if (!(err instanceof ForeignKeyConstraintError || err instanceof ValidationError)) {
+    next(err)
+    return
+  }
 
-module.exports = { logErrors, errorHandler, boomErrorHandler }
+  const { fields, parent } = err
+  res.status(400).json({
+    field: fields,
+    message: parent.detail
+  })
+}
+
+
+module.exports = { logErrors, errorHandler, boomErrorHandler, ormErrorHandler }

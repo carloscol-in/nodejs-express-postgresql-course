@@ -9,6 +9,7 @@
     "jest": true
   },
   "rules": {
+    "source-type": "module",
     "no-console": "warn"
   }
 }
